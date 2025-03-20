@@ -4,10 +4,19 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from googletrans import Translator
 from fastapi.exceptions import HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from nltk.sentiment import SentimentIntensityAnalyzer
 
 nltk.download('vader_lexicon')
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class SingleReviewRequest(BaseModel):
     review: str
