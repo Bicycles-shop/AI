@@ -1,8 +1,16 @@
 import nltk
+from typing import List
+from fastapi import FastAPI
+from pydantic import BaseModel
 from googletrans import Translator
+from fastapi.exceptions import HTTPException
 from nltk.sentiment import SentimentIntensityAnalyzer
 
 nltk.download('vader_lexicon')
+app = FastAPI()
+
+class SingleReviewRequest(BaseModel):
+    review: str
 
 async def analyze_sentiment(text: str):
     try:
@@ -20,3 +28,11 @@ async def analyze_sentiment(text: str):
             return "Neutral"
     except:
         raise Exception("Error during sentiment analysis")
+
+@app.post("/sentiment-analysis")
+async def analyze_review(request: SingleReviewRequest):
+    try:
+        sentiment = await analyze_sentiment(request.review)
+        return {"tonality": sentiment}
+    except Exception as ex:
+        HTTPException(status_code=400, detail=ex)
