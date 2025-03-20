@@ -12,6 +12,9 @@ app = FastAPI()
 class SingleReviewRequest(BaseModel):
     review: str
 
+class ManyReviewsRequest(BaseModel):
+    reviews: List[str]
+
 async def analyze_sentiment(text: str):
     try:
         translator = Translator()
@@ -29,10 +32,21 @@ async def analyze_sentiment(text: str):
     except:
         raise Exception("Error during sentiment analysis")
 
-@app.post("/sentiment-analysis")
+@app.post("/sentiment-analysis/single")
 async def analyze_review(request: SingleReviewRequest):
     try:
         sentiment = await analyze_sentiment(request.review)
         return {"tonality": sentiment}
     except Exception as ex:
         HTTPException(status_code=400, detail=ex)
+
+@app.post("/sentiment-analysis/many")
+async def analyze_review(request: ManyReviewsRequest):
+    sentiments_list = []
+    for review in request.reviews:
+        try:
+            sentiment = await analyze_sentiment(review)
+            sentiments_list.append(sentiment)
+        except:
+            sentiments_list.append(None)
+    return {"tonality": sentiments_list}
